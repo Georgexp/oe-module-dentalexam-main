@@ -1,0 +1,17 @@
+{
+    "name": "Dental Exam",
+    "version": "1.0.0",
+    "author": "George Messiha",
+    "description": "A module for dental examination and charting",
+    "namespace": "DentalExam",
+    "type": "custom",
+    "dependencies": [],
+    "menu": [
+        {
+            "label": "Dental Exam",
+            "menu_id": "dental_exam",
+            "target": "modules/oe-module-dental-exam/index.php",
+            "acl": ["patients", "write"]
+        }
+    ]
+}

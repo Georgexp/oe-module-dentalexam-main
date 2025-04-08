@@ -1,0 +1,71 @@
+{% extends '@layouts/form-layout.twig' %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ baseUrl }}/modules/dental-exam/assets/css/dental-exam.css">
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <h2>Dental Exam</h2>
+        <form id="dentalExamForm" method="POST" action="{{ baseUrl }}/modules/dental-exam/save.php">
+            <input type="hidden" name="csrf_token_form" value="{{ csrf_token }}">
+            <input type="hidden" name="pid" value="{{ pid }}">
+            <input type="hidden" name="encounter" value="{{ encounter }}">
+
+            <!-- Dental Chart Grid -->
+            <div class="grid" id="grid">
+                {# The grid will be populated by JavaScript in dental-exam.js #}
+            </div>
+
+            <!-- Legend Section -->
+            <div class="legend">
+                <h4>Legend</h4>
+                <ul>
+                    <li><span style="background-color: white; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Healthy</li>
+                    <li><span style="background-color: red; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Caries</li>
+                    <li><span style="background-color: yellow; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Filling</li>
+                    <li><span style="background-color: gray; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Missing</li>
+                    <li><span style="background-color: black; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Extraction</li>
+                    <li><span style="background-color: #90EE90; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Crown</li>
+                    <li><span style="background-color: #87CEFA; display: inline-block; width: 20px; height: 20px; border: 1px solid black;"></span> Implant</li>
+                </ul>
+            </div>
+
+            <!-- Text Boxes Section -->
+            <div class="text-box-section">
+                <div class="text-box">
+                    <label for="chiefComplaint">Chief Complaint:</label>
+                    <textarea id="chiefComplaint" name="chief_complaint" placeholder="Enter chief complaint"></textarea>
+                </div>
+                <div class="text-box">
+                    <label for="primaryDiagnosis">Primary Diagnosis:</label>
+                    <textarea id="primaryDiagnosis" name="primary_diagnosis" placeholder="Enter primary diagnosis"></textarea>
+                </div>
+                <div class="text-box">
+                    <label for="recommendedTreatment">Recommended Treatment:</label>
+                    <textarea id="recommendedTreatment" name="recommended_treatment" placeholder="Enter recommended treatment"></textarea>
+                </div>
+                <div class="text-box">
+                    <label for="proceduresPerformed">Procedures Performed:</label>
+                    <textarea id="proceduresPerformed" name="procedures_performed" placeholder="Enter procedures performed"></textarea>
+                </div>
+                <div class="text-box">
+                    <label for="medicationsPrescribed">Medications Prescribed:</label>
+                    <textarea id="medicationsPrescribed" name="medications_prescribed" placeholder="Enter medications prescribed"></textarea>
+                </div>
+                <div class="text-box">
+                    <label for="followUpNextVisit">Follow-up & Next Visit:</label>
+                    <textarea id="followUpNextVisit" name="follow_up_next_visit" placeholder="Enter follow-up and next visit details"></textarea>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save Dental Exam</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Include JavaScript -->
+    <script src="{{ baseUrl }}/modules/dental-exam/assets/js/dental-exam.js"></script>
+{% endblock %}
