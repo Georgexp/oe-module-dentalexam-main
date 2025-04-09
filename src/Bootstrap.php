@@ -1,6 +1,7 @@
 <?php
+
 /**
- * Dental Chart module bootstrap.
+ * Bootstrap Class for the Dental Chart Module
  *
  * @package   OpenEMR
  * @link      http://www.open-emr.org
@@ -11,124 +12,109 @@
 
 namespace OpenEMR\Modules\DentalChart;
 
-use OpenEMR\Common\Logging\SystemLogger;
-use OpenEMR\Core\Kernel;
-use OpenEMR\Events\Globals\GlobalsInitializedEvent;
-use OpenEMR\Events\Main\Tabs\RenderEvent;
-use OpenEMR\Events\RestApiExtend\RestApiResourceServiceEvent;
-use OpenEMR\Menu\MenuEvent;
-use OpenEMR\Services\Globals\GlobalSetting;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-
+/**
+ * Bootstrap class for the Dental Chart Module
+ */
 class Bootstrap
 {
-    private $eventDispatcher;
-    private $logger;
-    private $moduleDirectoryName;
-    private $modulePath;
-    private $user;
+    const MODULE_MENU_NAME = 'Dental Chart';
+    const MODULE_PERMISSION = 'patients';
+    const MODULE_DIRECTORY = 'oe-module-dentalchart';
+    
+    /**
+     * @var \Module
+     */
+    private $module;
 
     /**
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param array                    $user
+     * Constructor
+     *
+     * @param \Module $module The OpenEMR module instance
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, $user)
+    public function __construct(\Module $module)
     {
-        $this->eventDispatcher = $eventDispatcher;
-        $this->user = $user;
-        $this->moduleDirectoryName = basename(dirname(__DIR__));
-        $this->modulePath = dirname(__DIR__);
-        $this->logger = new SystemLogger();
+        $this->module = $module;
     }
 
-    public function subscribeToEvents()
+    /**
+     * Initialize the module
+     *
+     * @return void
+     */
+    public function init()
     {
-        $this->addGlobalSettings();
+        // Register menu item for the module
         $this->registerMenuItems();
-        $this->registerTabMenu();
+        
+        // Register ACL permissions
+        $this->registerAclExtensions();
+        
+        // Register scripts and styles
+        $this->registerScriptsAndStyles();
     }
 
     /**
-     * @return void
-     */
-    public function addGlobalSettings()
-    {
-        $this->eventDispatcher->addListener(GlobalsInitializedEvent::EVENT_HANDLE, function(GlobalsInitializedEvent $event) {
-            $globalsService = $event->getGlobalsService();
-            $serviceSettings = [
-                'dentalchart_enabled' => new GlobalSetting(
-                    xl('Enable Dental Chart'),
-                    'bool',
-                    '1',
-                    xl('Enable the Dental Chart module')
-                ),
-            ];
-            $globalsService->addUserSpecificGlobalSettings('dentalchart', $serviceSettings);
-        });
-    }
-
-    /**
-     * Add menu item for the Dental Chart module.
+     * Register the module's menu items
      *
      * @return void
      */
-    public function registerMenuItems()
+    private function registerMenuItems()
     {
-        $this->eventDispatcher->addListener(MenuEvent::MENU_UPDATE, function(MenuEvent $event) {
-            // Main menu
-            $menu = $event->getMenu();
-            $moduleConfig = $event->getGlobals()->getModuleConfig();
-            
-            // Check if module is enabled
-            if ($moduleConfig->isRegistered('dentalchart') && empty($GLOBALS['dentalchart_enabled'])) {
-                return;
-            }
-
-            $menuItem = new \stdClass();
-            $menuItem->requirement = 0;
-            $menuItem->target = 'mod';
-            $menuItem->menu_id = 'mod0';
-            $menuItem->label = xlt("Dental Chart");
-            $menuItem->url = "/interface/modules/custom_modules/dentalchart/public/index.php";
-            $menuItem->children = [];
-            $menuItem->acl_req = ["patients", "dental"];
-            $menuItem->global_req = ["dentalchart_enabled"];
-
-            foreach ($menu as $item) {
-                if ($item->menu_id == 'patimg') {
-                    $item->children[] = $menuItem;
-                    break;
-                }
-            }
-            $event->setMenu($menu);
-        });
+        $hookObj = $GLOBALS['kernel']->getEventDispatcher();
+        $hookObj->addListener('menu_update_entries', [$this, 'addMenuItems']);
     }
 
     /**
-     * Register a tab for Dental Chart in the patient dashboard.
+     * Adds the module's menu items
+     *
+     * @param MenuEvent $event The menu event
+     * @return MenuEvent
+     */
+    public function addMenuItems($event)
+    {
+        $menu = $event->getMenu();
+        
+        $menuItem = new \stdClass();
+        $menuItem->requirement = 0;
+        $menuItem->target = 'den';
+        $menuItem->menu_id = 'den0';
+        $menuItem->label = self::MODULE_MENU_NAME;
+        $menuItem->url = '/interface/modules/custom_modules/' . self::MODULE_DIRECTORY . '/public/index.php';
+        $menuItem->children = [];
+        $menuItem->acl_req = [self::MODULE_PERMISSION, 'write'];
+        $menuItem->global_req = [];
+
+        foreach ($menu as $item) {
+            if ($item->menu_id == 'patimg') {
+                $item->children[] = $menuItem;
+                break;
+            }
+        }
+
+        $event->setMenu($menu);
+        
+        return $event;
+    }
+
+    /**
+     * Register ACL extensions
      *
      * @return void
      */
-    public function registerTabMenu()
+    private function registerAclExtensions()
     {
-        $this->eventDispatcher->addListener(RenderEvent::EVENT_RENDER_TABS_ABOVE, function(RenderEvent $event) {
-            $pid = $event->getPid();
-            if (empty($pid)) {
-                return;
-            }
-            
-            if (acl_check('patients', 'dental')) {
-                // Define tab as array for core to render
-                $tab = [
-                    'title' => xl('Dental Chart'),
-                    'link' => "/interface/modules/custom_modules/dentalchart/public/index.php?pid=" . urlencode($pid),
-                    'linkClass' => 'iframe dental-chart',
-                    'icon' => 'fa-teeth',
-                    'dataToggle' => '',
-                    'dataToggleTarget' => '',
-                ];
-                $event->addTab($tab);
-            }
-        });
+        // We are using existing permissions for now
+        // If needed, custom permissions can be added here
+    }
+
+    /**
+     * Register scripts and styles
+     *
+     * @return void
+     */
+    private function registerScriptsAndStyles()
+    {
+        // We'll use the scripts directly in the templates
+        // If we need global scripts, we can register them here
     }
 }
